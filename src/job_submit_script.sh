@@ -8,7 +8,7 @@
 # Choose a queue:
 # Check options with "qconf -sql"
 # Check details with "qconf -sq <q-name>"
-#$ -q sopa.7.day
+#$ -q cm.7.day
 
 # Choose a parallel environment:
 # Check options with "qconf -spl"
