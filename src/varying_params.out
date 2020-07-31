@@ -1,3 +1,0 @@
-nohup: ignoring input
-Error: Could not find or load main class PyrithioneMain
-Caused by: java.lang.ClassNotFoundException: PyrithioneMain
