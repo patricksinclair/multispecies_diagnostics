@@ -26,7 +26,7 @@ public class Toolbox {
         File directory = new File(directoryName);
         if(!directory.exists()) directory.mkdirs();
 
-        File file = new File(directoryName+"/"+filename+".txt");
+        File file = new File(directoryName+"/"+filename+".csv");
 
         try{
 

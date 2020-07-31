@@ -8,15 +8,16 @@ class Microhabitat {
     private double c; //concn of antimicrobial
     private ArrayList<Double> population; //list of MICs of bacteria in microhab
 
-    private int K = 120; //karrying kapacity
+    private int K; //karrying kapacity
     private boolean surface = false, biofilm_region, immigration_zone = false;
     private double max_gRate = 0.083; //max growth rate =  2/day
     private double uniform_dRate = 0.018; //all bacteria have this death rate
     double biofilm_threshold; //fraction occupied needed to transition to biofilm
-    double b = 0.2; //migration rate
+    //double b = 0.2; //migration rate
 
-    Microhabitat(double c, double scale, double sigma, double biofilm_threshold){
+    Microhabitat(int K, double c, double scale, double sigma, double biofilm_threshold){
         this.c = c;
+        this.K = K;
         double mu = Math.log(scale);
         this.population = new ArrayList<>(K);
         this.biofilm_threshold = biofilm_threshold;
@@ -66,12 +67,12 @@ class Microhabitat {
         return fractionFull() >= biofilm_threshold;
     }
 
-    double migrate_rate(){
-        //returns 0.5*b for the microhabitat next to the ship hull, to account for the inability to migrate into the hull
-        //also for the microhabitat that's the biofilm edge
-        double b = 0.2;
-        return (surface || immigration_zone) ? 0.5*b : b;
-    }
+//    double migrate_rate(){
+//        //returns 0.5*b for the microhabitat next to the ship hull, to account for the inability to migrate into the hull
+//        //also for the microhabitat that's the biofilm edge
+//        double b = 0.2;
+//        return (surface || immigration_zone) ? 0.5*b : b;
+//    }
 
     private double beta(int index){
         return population.get(index);
@@ -88,7 +89,7 @@ class Microhabitat {
         //returns either the growth rate and the uniform death rate if the bacteria is resistant,
         //or the sums of the uniform and pharmacodyncamic death rates is the batceria is susceptible
         double phi_c_scaled = max_gRate*phi_c(index);
-        double gRate = phi_c_scaled > 0. ? phi_c_scaled*(1. - getN()/(double) K) : 0.;
+        double gRate = phi_c_scaled > 0. ? phi_c_scaled*(1. - (getN()/(double)K)) : 0.;
         double dRate = phi_c_scaled > 0. ? uniform_dRate : phi_c_scaled + uniform_dRate;
 
         return new double[]{gRate, dRate};

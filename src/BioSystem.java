@@ -21,15 +21,18 @@ class BioSystem {
 
     private double deterioration_rate;
     private double biofilm_threshold;
-    private double immigration_rate = 0.8;
-    private double migration_rate = 0.2;
+
+    private int K = 2000; //carrying capacity
+    private double max_gRate = 0.083; //max growth rate =  2/day
+    private double immigration_rate = 80.;
+    private double migration_rate = 1.;
     private double tau;
-    private double delta_x = 5.;
-    private int thickness_limit = 6; //this is how big the system can get before we exit. should reduce overall simulation duration todo-change back to 50 for big runs
+    private double delta_z = 1.;
+    private int thickness_limit = 22; //this is how big the system can get before we exit. should reduce overall simulation duration todo-change back to "50" for big runs
     private int detachments_counter = 0, deaths_counter = 0, replications_counter = 0, immigrations_counter = 0, tau_halves_counter = 0; //last one is the number of times tau had to be halved due to double events
 
 
-    public BioSystem(double deterioration_rate, double biofilm_threshold, double tau){
+    public BioSystem(double deterioration_ratio, double biofilm_threshold, double tau){
 
         //this constructor is used purely for the detachment rate determination in the biocide free environment
         this.alpha = 0.;
@@ -42,10 +45,13 @@ class BioSystem {
         this.exit_time = 0.;
         this.immigration_index = 0;
         this.tau = tau;
-        this.deterioration_rate = deterioration_rate;
+
+        //here there's been a slight modification so that the deterioration rate now depends on the ratio
+        //with the max_growth rate, like in the biofilm_threshold_theory code
+        this.deterioration_rate = deterioration_ratio*max_gRate;
         this.biofilm_threshold = biofilm_threshold;
 
-        microhabitats.add(new Microhabitat(calc_C_i(0, c_max, alpha, delta_x), scale, sigma, biofilm_threshold));
+        microhabitats.add(new Microhabitat(K, calc_C_i(0, c_max, alpha, delta_z), scale, sigma, biofilm_threshold));
 
         microhabitats.get(0).setSurface();
         microhabitats.get(0).addARandomBacterium_x_N(5);
@@ -66,7 +72,7 @@ class BioSystem {
         this.biofilm_threshold = 0.6;
         this.deterioration_rate = 0.002;
 
-        microhabitats.add(new Microhabitat(calc_C_i(0, this.c_max, this.alpha, this.delta_x), scale, sigma, this.biofilm_threshold));
+        microhabitats.add(new Microhabitat(K, calc_C_i(0, this.c_max, this.alpha, this.delta_z), scale, sigma, this.biofilm_threshold));
         microhabitats.get(0).setSurface();
         microhabitats.get(0).addARandomBacterium_x_N(5);
     }
@@ -149,7 +155,7 @@ class BioSystem {
             microhabitats.get(immigration_index).setImmigration_zone(false);
 
             int i = microhabitats.size();
-            microhabitats.add(new Microhabitat(BioSystem.calc_C_i(i, c_max, alpha, delta_x), scale, sigma, biofilm_threshold));
+            microhabitats.add(new Microhabitat(K, BioSystem.calc_C_i(i, c_max, alpha, delta_z), scale, sigma, biofilm_threshold));
             immigration_index = i;
             microhabitats.get(immigration_index).setImmigration_zone(true);
         }
@@ -319,22 +325,24 @@ class BioSystem {
     public static void varyingDeteriorationAndThreshold(int n_reps, double tau_val){
         long startTime = System.currentTimeMillis();
         //this method varies the deterioration rate and the threshold biofilm density, returns the thickness reached and the event counters
+        //this has been modified so that we now vary the deterioration ratio like in the biofilm_threshold_theory notes, rather than
+        //the actual rate itself.
         //int n_reps = 15; //the number of times each simulation is repeated for
         //n_reps has been replaced with an argument, which will be the number of processors available to it when I submit this on the qsub system.
-        int n_measurements = 20; //the number of measurements taken for deterioration and rho
+        int n_measurements = 24; //the number of different values used for deterioration and rho
 
         double K_min = 0.45, K_max = 0.95;
         double K_increment = (K_max - K_min)/(double)n_measurements;
-        double det_min = 0.006, det_max = 0.06;
-        double det_increment = (det_max - det_min)/(double)n_measurements;
+        double detRatio_min = 0.1, detRatio_max = 0.9;
+        double detRatio_increment = (detRatio_max - detRatio_min)/(double)n_measurements;
         double duration = 240.; //10 days
-        String filename = String.format("varying_detRate-(%.4f-%.4f)_and_thresholdK-(%.4f-%.4f)-tau=%.3f-BUGFIXED", det_min, det_max, K_min, K_max, tau_val);
-        String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "K*", "det_rate", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
+        String filename = String.format("varying-r_det-(%.4f-%.4f)-N_thresh-(%.4f-%.4f)-tau=%.3f", detRatio_min, detRatio_max, K_min, K_max, tau_val);
+        String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "N*", "det_rate_ratio", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
         ArrayList<Databox> Databoxes = new ArrayList<>();
 
         for(double thresh_K = K_min; thresh_K <= K_max; thresh_K+=K_increment){
-            for(double det_r = det_min; det_r <= det_max; det_r+=det_increment){
-                Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_r, tau_val);
+            for(double det_ratio = detRatio_min; det_ratio <= detRatio_max; det_ratio+=detRatio_increment){
+                Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
                 Databoxes.add(db);
             }
         }
@@ -351,11 +359,11 @@ class BioSystem {
 
 
 
-    public static Databox varyingDeteriorationAndThreshold_subroutine(int n_reps, double duration, double thresh_K, double det_r, double tau_val){
+    public static Databox varyingDeteriorationAndThreshold_subroutine(int n_reps, double duration, double thresh_K, double det_r_ratio, double tau_val){
 
         Databox[] databoxes = new Databox[n_reps];
 
-        IntStream.range(0, n_reps).parallel().forEach(i -> databoxes[i] = BioSystem.varyingDeteriorationAndThreshold_subsubroutine(i, duration, thresh_K, det_r, tau_val));
+        IntStream.range(0, n_reps).parallel().forEach(i -> databoxes[i] = BioSystem.varyingDeteriorationAndThreshold_subsubroutine(i, duration, thresh_K, det_r_ratio, tau_val));
 
         return Databox.averagedMeasurementsAndStDev(databoxes);
     }

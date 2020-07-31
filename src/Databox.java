@@ -1,21 +1,19 @@
-import java.lang.reflect.Array;
-
 public class Databox {
 
-    public double tau, simulation_time, simulation_time_stDev, exit_time, exit_time_stDev, det_rate, threshold_K;
+    public double tau, simulation_time, simulation_time_stDev, exit_time, exit_time_stDev, threshold_N, det_ratio;
     public double thickness, thickness_stDev;
     public double[] event_counters;
 
 
-    public Databox(double tau, double simulation_time, double exit_time, double threshold_K, double det_rate, double thickness, double[] event_counters){
+    public Databox(double tau, double simulation_time, double exit_time, double threshold_N, double det_ratio, double thickness, double[] event_counters){
         //todo - alter the code so that thresholdK is consistently placed before det rate in the other methods
         this.tau = tau;
         this.simulation_time = simulation_time;
         this.simulation_time_stDev = 0.;
         this.exit_time = exit_time;
         this.exit_time_stDev = 0.;
-        this.det_rate = det_rate;
-        this.threshold_K = threshold_K;
+        this.threshold_N = threshold_N;
+        this.det_ratio = det_ratio;
         this.thickness = thickness;
         this.thickness_stDev = 0.;
         this.event_counters = event_counters;
@@ -29,8 +27,8 @@ public class Databox {
     public double getExit_time(){return exit_time;}
     public double getExit_time_stDev(){return exit_time_stDev;}
     public void setExit_time_stDev(double exit_time_stDev){this.exit_time_stDev = exit_time_stDev;}
-    public double getThreshold_K(){return threshold_K;}
-    public double getDet_rate(){return det_rate;}
+    public double getThreshold_N(){return threshold_N;}
+    public double getDet_ratio(){return det_ratio;}
     public double getThickness(){ return thickness; }
     public double getThickness_stDev(){ return thickness_stDev; }
     public void setThickness_stDev(double thickness_stDev){this.thickness_stDev = thickness_stDev;}
@@ -41,7 +39,7 @@ public class Databox {
         //The order of this array correlates with the order of the counter labels. make sure they match.
         double[] non_counters;
 
-        non_counters = new double[]{tau, simulation_time, simulation_time_stDev, exit_time, exit_time_stDev, threshold_K, det_rate, thickness, thickness_stDev};
+        non_counters = new double[]{tau, simulation_time, simulation_time_stDev, exit_time, exit_time_stDev, threshold_N, det_ratio, thickness, thickness_stDev};
 
         double[] all_vals = new double[non_counters.length + event_counters.length];
 
@@ -61,7 +59,7 @@ public class Databox {
             added_counters[i] = d1.event_counters[i] + d2.event_counters[i];
         }
 
-        return new Databox(d1.tau+d2.tau, d1.simulation_time+d2.simulation_time, d1.exit_time+d2.exit_time, d1.threshold_K+d2.threshold_K, d1.det_rate+d2.det_rate, d1.thickness+d2.thickness, added_counters);
+        return new Databox(d1.tau+d2.tau, d1.simulation_time+d2.simulation_time, d1.exit_time+d2.exit_time, d1.threshold_N +d2.threshold_N, d1.det_ratio +d2.det_ratio, d1.thickness+d2.thickness, added_counters);
     }
 
 
@@ -73,7 +71,7 @@ public class Databox {
         for(int i = 0; i < db.event_counters.length; i++){
             scaled_counters[i] = db.event_counters[i]/divisor;
         }
-        return new Databox(db.tau/divisor, db.simulation_time/divisor, db.exit_time/divisor, db.threshold_K/divisor,db.det_rate/divisor,  db.thickness/divisor, scaled_counters);
+        return new Databox(db.tau/divisor, db.simulation_time/divisor, db.exit_time/divisor, db.threshold_N /divisor,db.det_ratio /divisor,  db.thickness/divisor, scaled_counters);
     }
 
 
@@ -103,7 +101,6 @@ public class Databox {
         averagedDB.setThickness_stDev(Math.sqrt(sumSq_thick/(databoxes.length - 1.)));
         averagedDB.setSimulation_time_stDev(Math.sqrt(sumSq_simTime/(databoxes.length - 1.)));
         averagedDB.setExit_time_stDev(Math.sqrt(sumSq_exitT/(databoxes.length - 1.)));
-
 
         return averagedDB;
     }
