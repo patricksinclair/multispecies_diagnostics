@@ -41,6 +41,6 @@ time {
 # put the usual mpirun command here
 # the shell variable $NSLOTS is the number of cores you asked for above
 
-nohup java -cp ".:java_jars/*" PyrithioneMain $NSLOTS &> varying_params.out&
+nohup java -cp ".:java_jars/*" MultispeciesMain $NSLOTS &> varying_params.out&
 
 }
