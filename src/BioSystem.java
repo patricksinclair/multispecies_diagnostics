@@ -22,9 +22,9 @@ class BioSystem {
     private double deterioration_rate;
     private double biofilm_threshold;
 
-    private int K = 2000; //carrying capacity
+    private int K = 550; //carrying capacity
     private double max_gRate = 0.083; //max growth rate =  2/day
-    private double immigration_rate = 80.;
+    private double immigration_rate = 20.;
     private double migration_rate = 1.;
     private double tau;
     private double delta_z = 1.;
@@ -329,7 +329,7 @@ class BioSystem {
         //the actual rate itself.
         //int n_reps = 15; //the number of times each simulation is repeated for
         //n_reps has been replaced with an argument, which will be the number of processors available to it when I submit this on the qsub system.
-        int n_measurements = 24; //the number of different values used for deterioration and rho
+        int n_measurements = 20; //the number of different values used for deterioration and rho
 
         double K_min = 0.45, K_max = 0.95;
         double K_increment = (K_max - K_min)/(double)n_measurements;
