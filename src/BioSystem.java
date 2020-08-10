@@ -334,7 +334,7 @@ class BioSystem {
         //qsub time limit
         int n_measurements = 20; //the number of different values used for deterioration and rho
 
-        double K_min = 0.45, K_max = 0.95; //population density threshold for biofilm formation
+        double K_min = 0.4, K_max = 1.; //population density threshold for biofilm formation
         double K_increment = (K_max - K_min)/(double)n_measurements;
         double detRatio_min = 0.1, detRatio_max = 0.9;
         double detRatio_increment = (detRatio_max - detRatio_min)/(double)n_measurements;
@@ -346,7 +346,7 @@ class BioSystem {
         String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "N*", "det_rate_ratio", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
         ArrayList<Databox> Databoxes = new ArrayList<>(); //this isn't really necessary with the new filewriting system
 
-        for(double thresh_K = K_startIndex*K_increment; thresh_K <= K_endIndex*K_increment; thresh_K+=K_increment){
+        for(double thresh_K = K_min+(K_startIndex*K_increment); thresh_K <= K_min+(K_endIndex*K_increment); thresh_K+=K_increment){
             for(double det_ratio = detRatio_min; det_ratio <= detRatio_max; det_ratio+=detRatio_increment){
                 Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
                 Databoxes.add(db); //not really necessary with the new filewriting system
