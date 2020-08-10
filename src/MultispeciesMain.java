@@ -6,12 +6,12 @@ public class MultispeciesMain {
         double tau_val = 0.2;
 
         //these ints tell us which chunks of parameter values to run
-        //possible values range from 1 to 20.
-        int K_startIndex = 1, K_endIndex = 4; //chunk 1 values
-        //int K_startIndex = 5, K_endIndex = 8; //chunk 2 values
-        //int K_startIndex = 9, K_endIndex = 12; //chunk 3 values
-        //int K_startIndex = 13, K_endIndex = 16; //chunk 4 values
-        //int K_startIndex = 17, K_endIndex = 20; //chunk 5 values
+        //possible values range from 0 to 19.
+        int K_startIndex = 0, K_endIndex = 3; //chunk 1 values
+        //int K_startIndex = 4, K_endIndex = 7; //chunk 2 values
+        //int K_startIndex = 8, K_endIndex = 11; //chunk 3 values
+        //int K_startIndex = 12, K_endIndex = 15; //chunk 4 values
+        //int K_startIndex = 16, K_endIndex = 19; //chunk 5 values
 
 
         BioSystem.varyingDeteriorationAndThreshold(nReps, tau_val, K_startIndex, K_endIndex);
