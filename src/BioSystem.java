@@ -322,33 +322,44 @@ class BioSystem {
     }
 
 
-    public static void varyingDeteriorationAndThreshold(int n_reps, double tau_val){
+    public static void varyingDeteriorationAndThreshold(int n_reps, double tau_val, int K_startIndex, int K_endIndex){
         long startTime = System.currentTimeMillis();
         //this method varies the deterioration rate and the threshold biofilm density, returns the thickness reached and the event counters
         //this has been modified so that we now vary the deterioration ratio like in the biofilm_threshold_theory notes, rather than
         //the actual rate itself.
         //int n_reps = 15; //the number of times each simulation is repeated for
         //n_reps has been replaced with an argument, which will be the number of processors available to it when I submit this on the qsub system.
+        //because this method takes so long to run, we'll split it up into chunks and save the results for each parameter pair seperately
+        //the K_start/endIndex arguments tells us which chunks to run, allowing us to run several chunks in parallel and also avoiding the
+        //qsub time limit
         int n_measurements = 20; //the number of different values used for deterioration and rho
 
-        double K_min = 0.45, K_max = 0.95;
+        double K_min = 0.45, K_max = 0.95; //population density threshold for biofilm formation
         double K_increment = (K_max - K_min)/(double)n_measurements;
         double detRatio_min = 0.1, detRatio_max = 0.9;
         double detRatio_increment = (detRatio_max - detRatio_min)/(double)n_measurements;
         double duration = 240.; //10 days
-        String filename = String.format("varying-r_det-(%.4f-%.4f)-N_thresh-(%.4f-%.4f)-tau=%.3f", detRatio_min, detRatio_max, K_min, K_max, tau_val);
-        String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "N*", "det_rate_ratio", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
-        ArrayList<Databox> Databoxes = new ArrayList<>();
 
-        for(double thresh_K = K_min; thresh_K <= K_max; thresh_K+=K_increment){
+
+        String directoryName = "/Disk/ds-sopa-personal/s1212500/multispecies-sims/ms_diags_results";
+        String filename = String.format("varying-r_det-(%.5f-%.5f)-N_thresh-(%.4f-%.4f)-tau=%.3f", detRatio_min, detRatio_max, K_min, K_max, tau_val);
+        String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "N*", "det_rate_ratio", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
+        ArrayList<Databox> Databoxes = new ArrayList<>(); //this isn't really necessary with the new filewriting system
+
+        for(double thresh_K = K_startIndex*K_increment; thresh_K <= K_endIndex*K_increment; thresh_K+=K_increment){
             for(double det_ratio = detRatio_min; det_ratio <= detRatio_max; det_ratio+=detRatio_increment){
                 Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
-                Databoxes.add(db);
+                Databoxes.add(db); //not really necessary with the new filewriting system
+
+                //here we can now write the results of each parameter pair to a file.  This will allow our progress to be saved during the simulation
+                //seeing as it will take over a week in its current state.
+                String solo_filename = String.format("ms_diags-N^-%.3f_rDet-%.5f", thresh_K, det_ratio);
+                Toolbox.writeAverageDataboxToFile(directoryName, solo_filename, headers, db);
             }
         }
 
 
-        Toolbox.writeDataboxArraylistToFile("diagnostics", filename, headers, Databoxes);
+        Toolbox.writeDataboxArraylistToFile(directoryName, filename, headers, Databoxes);
 
 
         long finishTime = System.currentTimeMillis();
@@ -360,7 +371,7 @@ class BioSystem {
 
 
     public static Databox varyingDeteriorationAndThreshold_subroutine(int n_reps, double duration, double thresh_K, double det_r_ratio, double tau_val){
-
+        //run several reps of the same parameter set in parallel, then average the results at the end
         Databox[] databoxes = new Databox[n_reps];
 
         IntStream.range(0, n_reps).parallel().forEach(i -> databoxes[i] = BioSystem.varyingDeteriorationAndThreshold_subsubroutine(i, duration, thresh_K, det_r_ratio, tau_val));
@@ -380,14 +391,14 @@ class BioSystem {
         double start_time = System.currentTimeMillis();
 
         while(bs.time_elapsed <= (duration+0.001*interval)){
-            if((bs.getTimeElapsed()%interval >= 0. && bs.getTimeElapsed()%interval <= 0.02*interval) && !alreadyRecorded){
+            //got rid of the alreadyRecorded stuff as it doesn't really matter here
+            if((bs.getTimeElapsed()%interval >= 0. && bs.getTimeElapsed()%interval <= 0.02*interval)){
 
-                int total_N = bs.getTotalN();
-                System.out.println("rep : "+i+"\ttau: "+bs.tau+"\tK*: "+bs.biofilm_threshold+"\td_rate: "+bs.deterioration_rate+"\tt: "+bs.getTimeElapsed()+"\tpop size: "+total_N+"\tbf_edge: "+bs.getBiofilmEdge()+"\tsystem size: "+bs.getSystemSize()+"\tc_max: "+bs.c_max);
-                alreadyRecorded = true;
+                System.out.println("rep : "+i+"\ttau: "+bs.tau+"\tK*: "+bs.biofilm_threshold+"\td_rate: "+bs.deterioration_rate+"\tt: "+bs.getTimeElapsed()+"\tpop size: "+bs.getTotalN()+"\tbf_edge: "+bs.getBiofilmEdge()+"\tsystem size: "+bs.getSystemSize()+"\tc_max: "+bs.c_max);
+                //alreadyRecorded = true;
             }
 
-            if(bs.getTimeElapsed()%interval >= 0.1*interval) alreadyRecorded = false;
+            //if(bs.getTimeElapsed()%interval >= 0.1*interval) alreadyRecorded = false;
 
             bs.performAction();
         }

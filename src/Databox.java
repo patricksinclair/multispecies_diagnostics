@@ -37,9 +37,9 @@ public class Databox {
 
     public double[] allDataInAnArray(){
         //The order of this array correlates with the order of the counter labels. make sure they match.
-        double[] non_counters;
+        //double[] non_counters;
 
-        non_counters = new double[]{tau, simulation_time, simulation_time_stDev, exit_time, exit_time_stDev, threshold_N, det_ratio, thickness, thickness_stDev};
+        double[] non_counters = new double[]{tau, simulation_time, simulation_time_stDev, exit_time, exit_time_stDev, threshold_N, det_ratio, thickness, thickness_stDev};
 
         double[] all_vals = new double[non_counters.length + event_counters.length];
 

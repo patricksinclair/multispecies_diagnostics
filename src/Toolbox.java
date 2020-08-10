@@ -1,3 +1,4 @@
+import javax.xml.crypto.Data;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -14,6 +15,53 @@ public class Toolbox {
             if(s.length() > biggun) biggun = s.length();
         }
         return biggun;
+    }
+
+    static void writeAverageDataboxToFile(String directoryName, String filename, String[] headers, Databox databox){
+        //rather than write everything into one big file, we'll use this method to write individual files for each parameter pair,
+        //then we can combine them into a single database once everything's complete
+        File directory = new File(directoryName);
+        if(!directory.exists()) directory.mkdirs();
+
+        File file = new File(directoryName+"/"+filename+".csv");
+
+        try{
+
+            FileWriter fw = new FileWriter(file.getAbsoluteFile());
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            //write the headers to the file
+            //removed the whitespace stuff so it's simpler to read into
+            //a pandas dataframe
+            int ncols = headers.length;
+            String file_header = "";
+            for(int i = 0; i < headers.length-1; i++){
+                file_header += headers[i]+",";
+            }
+            file_header += headers[headers.length-1];
+            bw.write(file_header);
+            bw.newLine();
+
+            String output = "";
+
+
+            double[] outputVals = databox.allDataInAnArray();
+            for(int v = 0; v < outputVals.length-1; v++){
+                output += String.format("%.4E", outputVals[v])+",";
+            }
+            output += String.format("%.4E", outputVals[outputVals.length-1]);
+
+            bw.write(output);
+
+
+            bw.close();
+
+
+            }catch (IOException e){}
+
+
+
+
     }
 
 
