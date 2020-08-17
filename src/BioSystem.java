@@ -342,12 +342,17 @@ class BioSystem {
 
 
         String directoryName = "/Disk/ds-sopa-personal/s1212500/multispecies-sims/ms_diags_results";
-        String filename = String.format("varying-r_det-(%.3f-%.3f)-N_thresh-(%.4f-%.4f)-tau=%.3f", detRatio_min, detRatio_max, K_min, K_max, tau_val);
+        String filename = String.format("varying-r_det-(%.3f-%.3f)-N_thresh-(%.4f-%.4f)-tau=%.3f", detRatio_min, detRatio_max, K_min+(K_startIndex*K_increment), K_max+(K_endIndex*K_increment), tau_val);
         String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "N*", "det_rate_ratio", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
         ArrayList<Databox> Databoxes = new ArrayList<>(); //this isn't really necessary with the new filewriting system
 
-        for(double thresh_K = K_min+(K_startIndex*K_increment); thresh_K <= K_min+(K_endIndex*K_increment); thresh_K+=K_increment){
-            for(double det_ratio = detRatio_min; det_ratio <= detRatio_max; det_ratio+=detRatio_increment){
+        //todo - depending on outcome, write code that'll just do specific parameter pairs to fill in the gaps
+        //k loop is different to the det ratio loop to allow us to run the simulations in chunks
+        for(int k = K_startIndex; k <= K_endIndex; k++){
+            for(int dr = 0; dr < n_measurements; dr++){
+                double thresh_K = K_min+(k*K_increment);
+                double det_ratio = detRatio_min+(dr*detRatio_increment);
+
                 Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
                 Databoxes.add(db); //not really necessary with the new filewriting system
 
@@ -357,6 +362,20 @@ class BioSystem {
                 Toolbox.writeAverageDataboxToFile(directoryName, solo_filename, headers, db);
             }
         }
+        //this is the old way of doing the for loops that I had
+        //think it's better to have ints in the loop conditions in order to stop floating point errors etc
+        //from cropping off some results
+//        for(double thresh_K = K_min+(K_startIndex*K_increment); thresh_K <= K_min+(K_endIndex*K_increment); thresh_K+=K_increment){
+//            for(double det_ratio = detRatio_min; det_ratio <= detRatio_max; det_ratio+=detRatio_increment){
+//                Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
+//                Databoxes.add(db); //not really necessary with the new filewriting system
+//
+//                //here we can now write the results of each parameter pair to a file.  This will allow our progress to be saved during the simulation
+//                //seeing as it will take over a week in its current state.
+//                String solo_filename = String.format("ms_diags-N^-%.3f_rDetRatio-%.3f", thresh_K, det_ratio);
+//                Toolbox.writeAverageDataboxToFile(directoryName, solo_filename, headers, db);
+//            }
+//        }
 
 
         Toolbox.writeDataboxArraylistToFile(directoryName, filename, headers, Databoxes);
@@ -392,7 +411,7 @@ class BioSystem {
 
         while(bs.time_elapsed <= (duration+0.001*interval)){
             //got rid of the alreadyRecorded stuff as it doesn't really matter here
-            if((bs.getTimeElapsed()%interval >= 0. && bs.getTimeElapsed()%interval <= 0.02*interval)){
+            if((bs.getTimeElapsed()%interval >= 0. && bs.getTimeElapsed()%interval <= 0.2*interval)){
 
                 System.out.println("rep : "+i+"\ttau: "+bs.tau+"\tK*: "+bs.biofilm_threshold+"\td_rate: "+bs.deterioration_rate+"\tt: "+bs.getTimeElapsed()+"\tpop size: "+bs.getTotalN()+"\tbf_edge: "+bs.getBiofilmEdge()+"\tsystem size: "+bs.getSystemSize()+"\tc_max: "+bs.c_max);
                 //alreadyRecorded = true;
