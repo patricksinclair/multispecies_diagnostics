@@ -394,15 +394,15 @@ class BioSystem {
         //iterate over all the N* values
         for(int k = 0; k <= n_measurements; k++){
 
-                double thresh_K = K_min+(k*K_increment);
-                //this time det_ratio is the same throughout
-                Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
-                Databoxes.add(db); //not really necessary with the new filewriting system
+            double thresh_K = K_min+(k*K_increment);
+            //this time det_ratio is the same throughout
+            Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, thresh_K, det_ratio, tau_val);
+            Databoxes.add(db); //not really necessary with the new filewriting system
 
-                //here we can now write the results of each parameter pair to a file.  This will allow our progress to be saved during the simulation
-                //seeing as it will take over a week in its current state.
-                String solo_filename = String.format("ms_diags-N^-%.3f_rDetRatio-%.3f", thresh_K, det_ratio);
-                Toolbox.writeAverageDataboxToFile(directoryName, solo_filename, headers, db);
+            //here we can now write the results of each parameter pair to a file.  This will allow our progress to be saved during the simulation
+            //seeing as it will take over a week in its current state.
+            String solo_filename = String.format("ms_diags-N^-%.3f_rDetRatio-%.3f", thresh_K, det_ratio);
+            Toolbox.writeAverageDataboxToFile(directoryName, solo_filename, headers, db);
 
         }
 
@@ -412,6 +412,51 @@ class BioSystem {
         System.out.println("Time taken: "+diff);
 
     }
+
+
+    public static void varyingDeteriorationAndThresholdN_extraThreshN(int n_reps, double tau_val){
+        //Due to yet more erroneous indexing, need to run a set of simulations with N* fixed at 0.95, for all the det ratio values
+        long startTime = System.currentTimeMillis();
+        int n_measurements = 20; //the number of different values used for deterioration and rho
+        //N* fixed at 0.95 for
+        double K_thresh = 0.95; //population density threshold for biofilm formation
+        double detRatio_min = 0.1, detRatio_max = 0.9;
+        double detRatio_increment = (detRatio_max - detRatio_min)/(double)n_measurements;
+        double duration = 240.; //10 days
+
+        String directoryName = "/Disk/ds-sopa-personal/s1212500/multispecies-sims/ms_diags_results";
+        String filename = String.format("varying-r_det-(%.3f-%.3f)-N_thresh-(%.4f-%.4f)-tau=%.3f", detRatio_min, detRatio_max, K_thresh, K_thresh, tau_val);
+        String[] headers = new String[]{"tau", "sim_time", "sim_time_stDev","exit_time", "exit_time_stDev", "N*", "det_rate_ratio", "thickness", "thick_stDev", "n_deaths", "n_detachments", "n_immigrations", "n_replications", "n_tau_halves"};
+        ArrayList<Databox> Databoxes = new ArrayList<>(); //this isn't really necessary with the new filewriting system
+
+        //here K_thresh is kept constant and we iterate over all the det ratios
+        for(int dr = 0; dr <= n_measurements; dr++){
+
+            double det_ratio = detRatio_min+(dr*detRatio_increment);
+
+            Databox db = BioSystem.varyingDeteriorationAndThreshold_subroutine(n_reps, duration, K_thresh, det_ratio, tau_val);
+            Databoxes.add(db); //not really necessary with the new filewriting system
+
+            //here we can now write the results of each parameter pair to a file.  This will allow our progress to be saved during the simulation
+            //seeing as it will take over a week in its current state.
+            String solo_filename = String.format("ms_diags-N^-%.3f_rDetRatio-%.3f", K_thresh, det_ratio);
+            Toolbox.writeAverageDataboxToFile(directoryName, solo_filename, headers, db);
+        }
+
+        Toolbox.writeDataboxArraylistToFile(directoryName, filename, headers, Databoxes);
+
+
+        long finishTime = System.currentTimeMillis();
+        String diff = Toolbox.millisToShortDHMS(finishTime - startTime);
+        System.out.println("results written to file");
+        System.out.println("Time taken: "+diff);
+
+    }
+
+
+
+
+
 
 
 

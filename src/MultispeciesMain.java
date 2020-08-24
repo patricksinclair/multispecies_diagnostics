@@ -15,6 +15,7 @@ public class MultispeciesMain {
         //int K_startIndex = 16, K_endIndex = 19; //chunk 5 values
 
         //BioSystem.varyingDeteriorationAndThreshold(nReps, tau_val, K_startIndex, K_endIndex);
-        BioSystem.varyingDeteriorationAndThresholdN_extraDetRatios(nReps, tau_val);
+        //BioSystem.varyingDeteriorationAndThresholdN_extraDetRatios(nReps, tau_val);
+        BioSystem.varyingDeteriorationAndThresholdN_extraThreshN(nReps, tau_val);
     }
 }

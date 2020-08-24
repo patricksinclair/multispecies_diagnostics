@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#$ -N ms-param_diags-extraDetRatios # job name
+#$ -N ms-param_diags-extraThreshN # job name
 #$ -V           # use all shell environment variables
 #$ -cwd         # run job in working directory
 # #$ -j y         # merge stdout and stderr to one file
