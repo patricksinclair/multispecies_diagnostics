@@ -11,10 +11,10 @@ public class MultispeciesMain {
         //something went wrong with chunks 2 and 3, so changed the indexes there to reflect that
         //int K_startIndex = 6, K_endIndex = 7; //chunk 2 values
         //int K_startIndex = 10, K_endIndex = 11; //chunk 3 values
-        int K_startIndex = 12, K_endIndex = 15; //chunk 4 values
+        //int K_startIndex = 12, K_endIndex = 15; //chunk 4 values
         //int K_startIndex = 16, K_endIndex = 19; //chunk 5 values
 
-
-        BioSystem.varyingDeteriorationAndThreshold(nReps, tau_val, K_startIndex, K_endIndex);
+        //BioSystem.varyingDeteriorationAndThreshold(nReps, tau_val, K_startIndex, K_endIndex);
+        BioSystem.varyingDeteriorationAndThresholdN_extraDetRatios(nReps, tau_val);
     }
 }
