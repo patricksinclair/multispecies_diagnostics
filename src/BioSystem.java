@@ -374,7 +374,6 @@ class BioSystem {
 
 
     public static void varyingDeteriorationAndThresholdN_extraDetRatios(int n_reps, double tau_val){
-        //todo - might need to do another one of these but for N* = 0.95
         //Due to some erroneous for looping, the final deterioration rate values weren't simulated in the above method
         //This method will simulate a deterioration ratio of 0.9 for all the N* values
         long startTime = System.currentTimeMillis();
@@ -416,10 +415,12 @@ class BioSystem {
 
     public static void varyingDeteriorationAndThresholdN_extraThreshN(int n_reps, double tau_val){
         //Due to yet more erroneous indexing, need to run a set of simulations with N* fixed at 0.95, for all the det ratio values
+        //UPDATE - This method will now finish off the final few det ratio values for N* = 0.725
         long startTime = System.currentTimeMillis();
         int n_measurements = 20; //the number of different values used for deterioration and rho
         //N* fixed at 0.95 for
-        double K_thresh = 0.95; //population density threshold for biofilm formation
+        //N* now fixed at 0.725 to finish off the values
+        double K_thresh = 0.725; //population density threshold for biofilm formation
         double detRatio_min = 0.1, detRatio_max = 0.9;
         double detRatio_increment = (detRatio_max - detRatio_min)/(double)n_measurements;
         double duration = 240.; //10 days
@@ -430,7 +431,8 @@ class BioSystem {
         ArrayList<Databox> Databoxes = new ArrayList<>(); //this isn't really necessary with the new filewriting system
 
         //here K_thresh is kept constant and we iterate over all the det ratios
-        for(int dr = 0; dr <= n_measurements; dr++){
+        //for N* = 0.725 we can skip the first few det ratio vals as some of them were completed
+        for(int dr = 3; dr < n_measurements; dr++){
 
             double det_ratio = detRatio_min+(dr*detRatio_increment);
 
